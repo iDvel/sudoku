@@ -166,17 +166,19 @@ class Sudoku():
                 l_tem = copy.deepcopy(self.l)
 
     def methed_saokan(self):
+        # TODO 应该寻找到只出现一次的格子后就记录位置，这么写太麻烦了
         l = []
         for i in range(9):
             # 找到那个只出现一次的数字
             for unit in self.box[i]:
                 if '[' not in unit['candidates']:
                     l.extend(unit['candidates'])
-            the_one = [k for k, v in Counter(l).items() if v == 1]
+            only_one_list = [k for k, v in Counter(l).items() if v == 1]
+            l = []
             # 通过这个数字反推格子位置
             for unit in self.box[i]:
                 if '[' not in unit['candidates']:
-                    for one in the_one:
+                    for one in only_one_list:
                         if one in unit['candidates']:
                             index = self.box[i].index(unit)
                             # 将数字和候选数字都修改为[x]
