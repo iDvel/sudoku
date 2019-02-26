@@ -2,12 +2,19 @@ import re
 import numpy
 from collections import Counter
 import copy
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 
 class Sudoku():
     def __init__(self):
         # 存储数独的数组
+        # self.l 结构：
+        # [[{},{},{},{},{},{},{},{},{}],[...],[...],...]
+        # 字典KV: 'num':数字 'candidates':候补数字 'box':宫 'row':行 'col':列
         self.l = self.init_sudoku_list()
+        self.initial_list = copy.deepcopy(self.l)  # 保留一份初始数独供完成后对比
         self.init_information()
 
     def init_information(self):
@@ -31,18 +38,16 @@ class Sudoku():
             for i in range(1, 10):
                 self.__getattr__(ch + str(i))['row'] = self.d[ch]
         # 列信息
-        for i in range(1, 10):
+        for i in range(9):
             for ch in 'abcdefghi':
-                self.__getattr__(ch + str(i))['col'] = i - 1
-
+                self.__getattr__(ch + str(i + 1))['col'] = i
 
     def __getattr__(self, item):
         """转换成数组的 index，self.a1 = self.sudoku_list[0][0], self.i9 = self.sudoku_list[8][8]"""
-        item_list = [ch for ch in item]
-        row, col = item_list
-        if row not in 'abcdefghi' or col not in '123456789':
+        x, y = [ch for ch in item]
+        if x not in 'abcdefghi' or y not in '123456789':
             raise AttributeError
-        row, col = self.d[row], int(col) - 1
+        row, col = self.d[x], int(y) - 1
         return self.l[row][col]
 
     def init_sudoku_list(self):
@@ -50,8 +55,9 @@ class Sudoku():
         l = []
         i = 0
         while i < 9:
-            num = input('请输入第 {} 行的内容：'.format(i + 1))
-            if num == 'x':  # 直接生成一个默认数组
+            num = input('请逐行输入数独内容，空白格用空格代替。\n请输入第 {} 行的内容：'.format(i + 1))
+            # 输入 x 直接生成一个默认数组
+            if num == 'x':
                 # l = ['··18·9·6·', '259··34··', '4·8·251··', '84·3··62·', '··768··95', '·9··7···1', '·1623··5·',
                 #      '·7··1·2··', '3··4·7···']
                 l = ['42··5·3·1', '8·59···4·', '······6··', '·1··7·2··', '···2·5···', '··7·1··3·', '··2······',
@@ -70,16 +76,15 @@ class Sudoku():
         new_l = []
         for i in range(9):
             new_l.append(list(map(lambda x: {'num': x, 'candidates': 'X'}, l[i])))
-        # 确定的数字的格子不显示 candidates，显示 num
+        # 已知数字的格子的 candidates 改为 [1][2] 这种的
         for i in range(9):
             for j in range(9):
                 if new_l[i][j]['num'] is not '·':
                     new_l[i][j]['candidates'] = '[' + new_l[i][j]['num'] + ']'
-        return numpy.array(
-            new_l)  # [[{'num': '·', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '1', 'candidates': None}, {'num': '8', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '9', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '6', 'candidates': None}, {'num': '·', 'candidates': None}], [{'num': '2', 'candidates': None}, {'num': '5', 'candidates': None}, {'num': '9', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '3', 'candidates': None}, {'num': '4', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '·', 'candidates': None}], [{'num': '4', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '8', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '2', 'candidates': None}, {'num': '5', 'candidates': None}, {'num': '1', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '·', 'candidates': None}], [{'num': '8', 'candidates': None}, {'num': '4', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '3', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '6', 'candidates': None}, {'num': '2', 'candidates': None}, {'num': '·', 'candidates': None}], [{'num': '·', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '7', 'candidates': None}, {'num': '6', 'candidates': None}, {'num': '8', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '9', 'candidates': None}, {'num': '5', 'candidates': None}], [{'num': '·', 'candidates': None}, {'num': '9', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '7', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '1', 'candidates': None}], [{'num': '·', 'candidates': None}, {'num': '1', 'candidates': None}, {'num': '6', 'candidates': None}, {'num': '2', 'candidates': None}, {'num': '3', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '5', 'candidates': None}, {'num': '·', 'candidates': None}], [{'num': '·', 'candidates': None}, {'num': '7', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '1', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '2', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '·', 'candidates': None}], [{'num': '3', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '4', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '7', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '·', 'candidates': None}, {'num': '·', 'candidates': None}]]
+        return numpy.array(new_l)
 
-    def show(self, l=[]):
-        if l == []:
+    def show(self, l=None):
+        if l is None:
             l = self.l
         """图形化显示数独数组"""
         base_graph = '''
@@ -99,8 +104,8 @@ class Sudoku():
         base_graph = base_graph.format(l)
         print(base_graph)
 
-    def show_candidates(self, l=[]):
-        if l == []:
+    def show_candidates(self, l=None):
+        if l == None:
             l = self.l
         """图形化显示数独候选数字"""
         base_graph = '''
@@ -125,11 +130,11 @@ class Sudoku():
         self.fill_num()
 
     def fill_candidates(self):
+        """填充所有潜在数字"""
         self.show_candidates()
         # 查找宫、行、列选出候补数字
         for row in range(9):
             for col in range(9):
-                # 判断空格
                 unit = self.l[row][col]
                 s = set()
                 if unit['num'] is '·':
@@ -139,28 +144,26 @@ class Sudoku():
                     # 统计行
                     s.update([u['num'] for u in self.l[row]])
                     # 统计列
-                    s.update([u['num'] for u in self.l[:, col]]) # 选择矩阵列
+                    s.update([u['num'] for u in self.l[:, col]])  # [:, 0] 选择numpy二维数组的第0列
                     # 完成，填充candidates
                     s.remove('·')
                     s = {'1', '2', '3', '4', '5', '6', '7', '8', '9'} - s
-                    unit['candidates'] = ''.join(list(s))
-        print('{:^96}'.format('*** 潜在数字填写完毕 ***'), end='')
+                    unit['candidates'] = ''.join(sorted(list(s)))
+        print('{:^100}'.format('*** 潜在数字填写完毕 ***'), end='')
         self.show_candidates()
 
     def fill_num(self):
         """扫看+候补+剔除"""
-        # 扫看：潜在数字在当前宫唯一，则此格为此数。
+        # 扫看：潜在数字在当前宫唯一，则此格为此数。 扫到直到无变化
         l_tem = copy.deepcopy(self.l)
         while True:
             self.methed_saokan()
-            # print(l_tem)
-            # print('--------------')
-            # print(self.l)
             if (l_tem == self.l).all():
+                print('{:^100}'.format('*** 扫看循环结束 ***'), end='')
+                self.show()
                 break
             else:
-                l_tem = l_tem = copy.deepcopy(self.l)
-                continue
+                l_tem = copy.deepcopy(self.l)
 
     def methed_saokan(self):
         l = []
@@ -178,7 +181,7 @@ class Sudoku():
                             index = self.box[i].index(unit)
                             # 将数字和候选数字都修改为[x]
                             self.box[i][index]['candidates'] = '[{}]'.format(one)
-                            self.box[i][index]['num'] = '[{}]'.format(one)
+                            self.box[i][index]['num'] = '{}'.format(one)
                             # 删除同行的相同候选数字
                             row = self.box[i][index]['row']
                             ch = [k for k, v in self.d.items() if v == row][0]
@@ -192,5 +195,5 @@ class Sudoku():
                                 if one in self.__getattr__(ch + str(col + 1))['candidates']:
                                     self.__getattr__(ch + str(col + 1))['candidates'] = \
                                         self.__getattr__(ch + str(col + 1))['candidates'].strip(one)
-        print('{:^96}'.format('*** 扫看完毕 ***'), end='')
+        print('{:^100}'.format('*** 扫看完毕 ***'), end='')
         self.show_candidates()
