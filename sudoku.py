@@ -28,9 +28,9 @@ class Sudoku():
         self.seven = [self.g1, self.g2, self.g3, self.h1, self.h2, self.h3, self.i1, self.i2, self.i3]
         self.eight = [self.g4, self.g5, self.g6, self.h4, self.h5, self.h6, self.i4, self.i5, self.i6]
         self.nine = [self.g7, self.g8, self.g9, self.h7, self.h8, self.h9, self.i7, self.i8, self.i9]
-        self.box = [self.one, self.two, self.three, self.four, self.five, self.six, self.seven, self.eight, self.nine]
+        self.boxes = [self.one, self.two, self.three, self.four, self.five, self.six, self.seven, self.eight, self.nine]
         # 给格子字典添加宫信息   {'box':'0'} {'box':'1'} ...
-        for i, box in enumerate(self.box):
+        for i, box in enumerate(self.boxes):
             for unit in box:
                 unit['box'] = i
         # 行信息
@@ -43,12 +43,21 @@ class Sudoku():
                 self.__getattr__(ch + str(i + 1))['col'] = i
 
     def __getattr__(self, item):
-        """转换成数组的 index，self.a1 = self.sudoku_list[0][0], self.i9 = self.sudoku_list[8][8]"""
-        x, y = [ch for ch in item]
-        if x not in 'abcdefghi' or y not in '123456789':
-            raise AttributeError
-        row, col = self.d[x], int(y) - 1
-        return self.l[row][col]
+        """转换成数组的 index，self.a1 = self.l[0][0], self.row1=[当前行所有格子的列表]"""
+        # if x not in 'abcdefghi' or y not in '123456789':
+        #     raise AttributeError
+        if len(item) == 2: # a1 b2 c3...
+            x, y = [ch for ch in item]
+            row, col = self.d[x], int(y) - 1
+            return self.l[row][col]
+        elif len(item) == 4: # rowa rowb col1 col2...
+            x, y = item[:3], item[3:]
+            if x == 'row':
+
+                logging.info(self.one)
+                return # 此行的列表
+            if x == 'col':
+                return # 此列的列表
 
     def init_sudoku_list(self):
         """创建初始的数独组合"""
@@ -139,7 +148,7 @@ class Sudoku():
                 s = set()
                 if unit['num'] is '·':
                     # 统计宫
-                    for u in self.box[unit['box']]:
+                    for u in self.boxes[unit['box']]:
                         s.update(u['num'])
                     # 统计行
                     s.update([u['num'] for u in self.l[row]])
@@ -166,36 +175,64 @@ class Sudoku():
                 l_tem = copy.deepcopy(self.l)
 
     def methed_saokan(self):
+        """扫看：潜在数字在当前宫唯一，则此格为此数"""
+        for box in self.boxes:
+            # 找到当前宫拥有唯一候选数字的那个格子
+            l = []
+            for unit in box:
+                if '[' not in unit['candidates']:
+                    l.extend(unit['candidates'])
+            only_one_list = [k for k, v in Counter(l).items() if v == 1]
+            for unit in box:
+                for the_one in only_one_list:
+                    if '[' not in unit['candidates'] and the_one in unit['candidates']:
+                        # Got it! 填入数字
+                        unit['num'] = the_one
+                        unit['candidates'] = '[{}]'.format(the_one)
+                        # 删除同行相同的候选数字
+                        row = unit['row']
+                        # logging.info(type(unit['row']))
+                        # [ch + str(unit['row']) for ch in 'abcdefghi' if ]
+                        self.__getattr__('rowa')
+                        self.__getattr__('col2')
+
+                        # 删除同列相同的候选数字
+
+
+
+
+        '''
         # TODO 应该寻找到只出现一次的格子后就记录位置，这么写太麻烦了
         l = []
         for i in range(9):
             # 找到那个只出现一次的数字
-            for unit in self.box[i]:
+            for unit in self.boxes[i]:
                 if '[' not in unit['candidates']:
                     l.extend(unit['candidates'])
             only_one_list = [k for k, v in Counter(l).items() if v == 1]
             l = []
             # 通过这个数字反推格子位置
-            for unit in self.box[i]:
+            for unit in self.boxes[i]:
                 if '[' not in unit['candidates']:
                     for one in only_one_list:
                         if one in unit['candidates']:
-                            index = self.box[i].index(unit)
+                            index = self.boxes[i].index(unit)
                             # 将数字和候选数字都修改为[x]
-                            self.box[i][index]['candidates'] = '[{}]'.format(one)
-                            self.box[i][index]['num'] = '{}'.format(one)
+                            self.boxes[i][index]['candidates'] = '[{}]'.format(one)
+                            self.boxes[i][index]['num'] = '{}'.format(one)
                             # 删除同行的相同候选数字
-                            row = self.box[i][index]['row']
+                            row = self.boxes[i][index]['row']
                             ch = [k for k, v in self.d.items() if v == row][0]
                             for j in range(1, 10):
                                 if one in self.__getattr__(ch + str(j))['candidates']:
                                     self.__getattr__(ch + str(j))['candidates'] = self.__getattr__(ch + str(j))[
                                         'candidates'].strip(one)
                             # 删除同列的相同候选数字
-                            col = self.box[i][index]['col']
+                            col = self.boxes[i][index]['col']
                             for ch in 'abcdefghi':
                                 if one in self.__getattr__(ch + str(col + 1))['candidates']:
                                     self.__getattr__(ch + str(col + 1))['candidates'] = \
                                         self.__getattr__(ch + str(col + 1))['candidates'].strip(one)
         print('{:^100}'.format('*** 扫看完毕 ***'), end='')
         self.show_candidates()
+        '''
