@@ -19,13 +19,20 @@ class Sudoku:
     def init_suduku_list(self):
         """创建初始的数独组合：二维数组"""
         input_l = []
-        print("请逐行输入数独内容，空白格用空格键代替，输出'x'初始化默认数组")
+        print("请逐行输入数独内容，空白格用空格键代替，直接回车初始化默认数组")
         i = 1
         while i <= 9:
             num = input('请输入第 {} 行的内容：'.format(i))
-            if num == 'x' or num == 'X':
-                input_l = ['42··5·3·1', '8·59···4·', '······6··', '·1··7·2··', '···2·5···', '··7·1··3·', '··2······',
-                           '·9···71·3', '7·6·8··29']
+            if num == '':
+                input_l = ['42··5·3·1',
+                           '8·59···4·',
+                           '······6··',
+                           '·1··7·2··',
+                           '···2·5···',
+                           '··7·1··3·',
+                           '··2······',
+                           '·9···71·3',
+                           '7·6·8··29']
                 break
             elif re.match(r'[1-9(\s)]{9}', num) and len(num) == 9:
                 input_l.append(num.replace(' ', '·'))
@@ -56,5 +63,14 @@ class Sudoku:
                                  'col': j}
         return input_l
 
+    def get_list_of(self, position, number):
+        """拿取整个宫、行、列的列表"""
+        return [unit for row_list in self.l for unit in row_list if unit[position] == number]
+
+
+
 
 sudoku = Sudoku()
+
+for x in sudoku.get_list_of('box', 4):
+    print(x)
