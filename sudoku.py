@@ -1,9 +1,8 @@
 import re
-import numpy
 from collections import Counter
 import copy
 import logging
-import json
+import time
 
 logging.basicConfig(level=logging.INFO)
 
@@ -28,11 +27,11 @@ class Sudoku:
     def init_suduku_list(self):
         """创建初始的数独组合：二维数组"""
         input_l = []
-        print("请逐行输入数独内容，空白格用空格键代替，直接回车初始化默认数组")
+        print("请逐行输入数独内容，空白格用空格键代替，输入「A」初始化默认初级数独，直接回车初始化默认高级数独")
         i = 1
         while i <= 9:
             num = input('请输入第 {} 行的内容：'.format(i))
-            if num == '':
+            if num == 'a' or num == 'A':
                 input_l = ['42··5·3·1',
                            '8·59···4·',
                            '······6··',
@@ -43,11 +42,23 @@ class Sudoku:
                            '·9···71·3',
                            '7·6·8··29']
                 break
+            elif num == '':
+                input_l = ['·6·3····1',
+                           '9····67··',
+                           '4·3····2·',
+                           '5·98·····',
+                           '··45·73··',
+                           '·····36·8',
+                           '·4····8·3',
+                           '··12····7',
+                           '3····8·4·']
+                break
             elif re.match(r'[1-9(\s)]{9}', num) and len(num) == 9:
                 input_l.append(num.replace(' ', '·'))
                 i += 1
             else:
                 continue
+        self._start_time = time.time()
         # 一维数组转二维
         input_l = [[i for i in j] for j in input_l]
         # 格子（unit）转字典，添加相关信息，格式如下
@@ -139,6 +150,9 @@ class Sudoku:
 
     def fill_number(self):
         """计算数字并填充"""
+        # 无限循环方法1会失效，无限循环方法2会失效
+        # 方法1的变动可能会让方法2找到出路，反之相同
+        # 交替循环两种方法，能直接解出初级数独
         compare_list = copy.deepcopy(self.l)
         while True:
             self.method_paichu()
@@ -150,6 +164,8 @@ class Sudoku:
                 break
             else:
                 compare_list = copy.deepcopy(self.l)
+        self._end_time = time.time()
+        self.interval_time = self._end_time - self._start_time
 
     def method_paichu(self):
         """排除：当前格只有一个候选数字，则此格为此数"""
@@ -208,6 +224,8 @@ class Sudoku:
         self.show()
 
 
+start = time.time()
 sudoku = Sudoku()
-
 sudoku.start()
+end = time.time()
+print('共计用时 {}'.format(sudoku.interval_time))
