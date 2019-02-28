@@ -11,7 +11,8 @@ logging.basicConfig(level=logging.INFO)
 class Sudoku:
     def __init__(self):
         # 计数
-        self.saokan_count = 0
+        self.fill_count = 0
+        self.method_count = 0
 
     def start(self):
         # 数独二维数组
@@ -59,9 +60,9 @@ class Sudoku:
         #  [{}, {}, {}, {}, {}, {}, {}, {}, {}],
         #  [{}, {}, {}, {}, {}, {}, {}, {}, {}],
         #  [{}, {}, {}, {}, {}, {}, {}, {}, {}]]
-        # num: 初始数字及后期已算出确定的数字
-        # can: candidates，候选数字，如果已确定数字则显示为[1]这种格式
-        # box: 所在宫 row: 所在行 col: 所在列
+        # num: 初始数字及后期已算出确定的数字，str
+        # can: candidates，候选数字，如果已确定数字则显示为[1]这种格式，str
+        # box: 所在宫 row: 所在行 col: 所在列，int
         for i, row in enumerate(input_l):
             for j, unit in enumerate(row):
                 input_l[i][j] = {'num': unit,
@@ -83,7 +84,9 @@ class Sudoku:
             # 返回单一宫、行、列的列表
             return [unit for row_list in self.l for unit in row_list if unit[position] == number]
 
-    def show(self, key='can'):
+    def show(self, key='can', l=None):
+        if l == None:
+            l = self.l
         """图形化显示数独二维数组"""
         if key == 'num':
             base_graph = '''
@@ -115,7 +118,7 @@ class Sudoku:
             | {0[7][0][can]:^9}{0[7][1][can]:^9}{0[7][2][can]:^9}| {0[7][3][can]:^9}{0[7][4][can]:^9}{0[7][5][can]:^9}| {0[7][6][can]:^9}{0[7][7][can]:^9}{0[7][8][can]:^9}|
             | {0[8][0][can]:^9}{0[8][1][can]:^9}{0[8][2][can]:^9}| {0[8][3][can]:^9}{0[8][4][can]:^9}{0[8][5][can]:^9}| {0[8][6][can]:^9}{0[8][7][can]:^9}{0[8][8][can]:^9}|
             +----------------------------+----------------------------+----------------------------+'''
-        base_graph = base_graph.format(self.l)
+        base_graph = base_graph.format(l)
         print(base_graph)
 
     def fill_candidates(self):
@@ -138,31 +141,66 @@ class Sudoku:
         """计算数字并填充"""
         compare_list = copy.deepcopy(self.l)
         while True:
+            self.method_paichu()
             self.method_saokan()
             if (compare_list == self.l):
-                print('{:^100}'.format('*** 扫看循环结束 ***'), end='')
+                print('{:^100}'.format('*** 循环结束，目前共填充了 {} 个数字 ***'.format(self.fill_count)), end='')
+                self.show(key='num', l=self.initial_list)
+                self.show(key='num')
                 break
             else:
                 compare_list = copy.deepcopy(self.l)
 
-    def method_saokan(self):
-        """扫看：候选数字在当前宫唯一，则此格为此数"""
+    def method_paichu(self):
+        """排除：当前格只有一个候选数字，则此格为此数"""
+        count = 0
         for box in self.get_list_of('boxes'):
             for unit in box:
                 if len(unit['can']) == 1:
+                    # 填入数字，删除同宫的相同候选数字
                     the_one = unit['can']
-                    # 填入数字，删除同行同列的相同候选数字
-                    unit['num'] = unit['can']
-                    unit['can'] = '[{}]'.format(unit['can'])
-                    for u in self.get_list_of('row', unit['row']):
+                    unit['num'] = the_one
+                    unit['can'] = '[{}]'.format(the_one)
+                    for u in box:
                         u['can'] = u['can'].strip(the_one)
-                    for u in self.get_list_of('col', unit['col']):
-                        u['can'] = u['can'].strip(the_one)
-        print('{:^100}'.format('*** 第 {} 次扫看完毕 ***'.format(self.saokan_count)), end='')
-        self.saokan_count += 1
+                    count += 1
+                    self.fill_count += 1
+        self.method_count += 1
+        print('{:^100}'.format('*** 第 {} 次排除完毕，本次填充了 {} 个数字 ***'.format(self.method_count, count)), end='')
+        self.show()
+
+    def method_saokan(self):
+        """扫看：候选数字在当前宫唯一，则此格为此数"""
+        count = 0
+        for box in self.get_list_of('boxes'):
+            # 先得到只出现一次的数字
+            l = []
+            for unit in box:
+                if '[' not in unit['can']:
+                    l.extend(unit['can'])
+            # 存入列表，因为每个宫可能有不止一个
+            only_one_list = [k for k, v in Counter(l).items() if v == 1]
+
+            for unit in box:
+                for the_one in only_one_list:
+                    if the_one in unit['can']:
+                        # 填入数字，删除同行同列的相同候选数字
+                        unit['num'] = the_one
+                        unit['can'] = '[{}]'.format(the_one)
+                        for u in self.get_list_of('row', unit['row']):
+                            u['can'] = u['can'].strip(the_one)
+                        for u in self.get_list_of('col', unit['col']):
+                            u['can'] = u['can'].strip(the_one)
+                        count += 1
+                        self.fill_count += 1
+
+        self.method_count += 1
+        print('{:^100}'.format('*** 第 {} 次扫看完毕，本次填充了 {} 个数字 ***'.format(self.method_count, count)), end='')
         self.show()
 
 
 sudoku = Sudoku()
 
 sudoku.start()
+
+
