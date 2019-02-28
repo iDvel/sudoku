@@ -157,12 +157,19 @@ class Sudoku:
         for box in self.get_list_of('boxes'):
             for unit in box:
                 if len(unit['can']) == 1:
-                    # 填入数字，删除同宫的相同候选数字
+                    # 填入数字，删除同宫同行同列的相同候选数字
                     the_one = unit['can']
                     unit['num'] = the_one
                     unit['can'] = '[{}]'.format(the_one)
                     for u in box:
-                        u['can'] = u['can'].strip(the_one)
+                        if '[' not in u['can'] and the_one in u['can']:
+                            u['can'] = u['can'].replace(the_one, '')
+                    for u in self.get_list_of('row', unit['row']):
+                        if '[' not in u['can'] and the_one in u['can']:
+                            u['can'] = u['can'].replace(the_one, '')
+                    for u in self.get_list_of('col', unit['col']):
+                        if '[' not in u['can'] and the_one in u['can']:
+                            u['can'] = u['can'].replace(the_one, '')
                     count += 1
                     self.fill_count += 1
         self.method_count += 1
@@ -188,9 +195,11 @@ class Sudoku:
                         unit['num'] = the_one
                         unit['can'] = '[{}]'.format(the_one)
                         for u in self.get_list_of('row', unit['row']):
-                            u['can'] = u['can'].strip(the_one)
+                            if '[' not in u['can'] and the_one in u['can']:
+                                u['can'] = u['can'].replace(the_one, '')
                         for u in self.get_list_of('col', unit['col']):
-                            u['can'] = u['can'].strip(the_one)
+                            if '[' not in u['can'] and the_one in u['can']:
+                                u['can'] = u['can'].replace(the_one, '')
                         count += 1
                         self.fill_count += 1
 
@@ -202,5 +211,3 @@ class Sudoku:
 sudoku = Sudoku()
 
 sudoku.start()
-
-
