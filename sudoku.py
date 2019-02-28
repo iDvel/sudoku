@@ -9,8 +9,9 @@ logging.basicConfig(level=logging.INFO)
 
 class Sudoku:
     def __init__(self):
-        # 计数
+        # 填写数字的次数
         self.fill_count = 0
+        # 循环中方法运行的次数
         self.method_count = 0
 
     def start(self):
@@ -72,7 +73,7 @@ class Sudoku:
         #  [{}, {}, {}, {}, {}, {}, {}, {}, {}],
         #  [{}, {}, {}, {}, {}, {}, {}, {}, {}]]
         # num: 初始数字及后期已算出确定的数字，str
-        # can: candidates，候选数字，如果已确定数字则显示为[1]这种格式，str
+        # can: candidates，候选数字，如果已确定数字则显示为[1]这种格式，方便调试，str
         # box: 所在宫 row: 所在行 col: 所在列，int
         for i, row in enumerate(input_l):
             for j, unit in enumerate(row):
@@ -152,7 +153,7 @@ class Sudoku:
         """计算数字并填充"""
         # 无限循环方法1会失效，无限循环方法2会失效
         # 方法1的变动可能会让方法2找到出路，反之相同
-        # 交替循环两种方法，能直接解出初级数独
+        # 交替循环两种方法，能直接解出初级数独，或解出高级数独的大部分内容
         compare_list = copy.deepcopy(self.l)
         while True:
             self.method_paichu()
@@ -224,8 +225,7 @@ class Sudoku:
         self.show()
 
 
-start = time.time()
+
 sudoku = Sudoku()
 sudoku.start()
-end = time.time()
-print('共计用时 {}'.format(sudoku.interval_time))
+print('共计用时 {:.2} 毫秒'.format(sudoku.interval_time*1000))
