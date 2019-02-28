@@ -1,4 +1,4 @@
-from sudoku import Sudoku
+from sudo_old import Sudoku
 
 
 sudoku = Sudoku()
