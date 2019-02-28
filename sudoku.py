@@ -13,6 +13,8 @@ class Sudoku:
         self.fill_count = 0
         # 循环中方法运行的次数
         self.method_count = 0
+        # 数独最初提供了几个数字
+        self.initial_sudoku_number = 0
 
     def start(self):
         # 数独二维数组
@@ -93,6 +95,10 @@ class Sudoku:
                                  'box': (i // 3) * 3 + (j // 3),
                                  'row': i,
                                  'col': j}
+                # 顺便统计数独最初一共提供了多少个数字
+                if unit == '·':
+                    self.initial_sudoku_number += 1
+        self.initial_sudoku_number = 81 - self.initial_sudoku_number
         return input_l
 
     def get_list_of(self, position, number=None):
@@ -176,6 +182,13 @@ class Sudoku:
                 break
             else:
                 compare_list = copy.deepcopy(self.l)
+
+        # 判断是否已解出数独
+        if self.fill_count + self.initial_sudoku_number == 81:
+            print('数独已全解')
+        else:
+            print('这个是高级数独。。。')
+
         self._end_time = time.time()
         self.interval_time = self._end_time - self._start_time
 
