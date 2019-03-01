@@ -13,12 +13,9 @@ class Sudoku:
         self.fill_count = 0
         # 循环中方法运行的次数
         self.method_count = 0
-        # 数独最初提供了几个数字
-        self.initial_sudoku_number = 0
         # 保存状态
         self.saved_list = []
         self.saved_number = []
-        self.saved_num_condition = ['row', 'col', 'num']
 
     def start(self):
         # 数独二维数组
@@ -99,10 +96,6 @@ class Sudoku:
                                  'box': (i // 3) * 3 + (j // 3),
                                  'row': i,
                                  'col': j}
-                # 顺便统计数独最初一共提供了多少个数字
-                if unit == '·':
-                    self.initial_sudoku_number += 1
-        self.initial_sudoku_number = 81 - self.initial_sudoku_number
         return input_l
 
     def get_list_of(self, key, number=None):
@@ -225,6 +218,7 @@ class Sudoku:
             self.method_main()
 
     def is_valid(self):
+        """判断数独是否合法（填错数字也可能合法，要到后面再多填一些数字才能看出来）"""
         for row in range(9):
             for col in range(9):
                 unit = self.l[row][col]
