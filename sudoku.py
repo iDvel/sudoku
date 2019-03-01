@@ -17,6 +17,7 @@ class Sudoku:
         self.initial_sudoku_number = 0
         # 保存状态
         self.saved_list = []
+        self.saved_number = []
         self.saved_num_condition = ['row', 'col', 'num']
 
     def start(self):
@@ -173,7 +174,6 @@ class Sudoku:
                     unit['can'] = ''.join(sorted(list(s)))
         self.show('can', '候选数字填写完毕')
 
-
     def method_main(self):
         """计算数字并填充"""
         # 无限循环方法1会失效，无限循环方法2会失效
@@ -183,9 +183,6 @@ class Sudoku:
         while True:
             self.method_paichu()
             self.method_saokan()
-            # 不合法就提前退出
-            if not (self.is_valid() and self.get_list_of('can').count('') == 0):
-                break
             if (compare_list == self.l):
                 self.show('num', '循环结束 共计填入过 {} 次'.format(self.fill_count), l=self.initial_list)
                 self.show('num')
@@ -193,16 +190,14 @@ class Sudoku:
             else:
                 compare_list = copy.deepcopy(self.l)
 
-
         # 判断是否已解出数独
-        if self.get_list_of('num').count('·') == 0 and self.is_valid():
+        if self.is_valid() and self.get_list_of('num').count('·') == 0:
             print('数独已全解')
             self._end_time = time.time()
             self.interval_time = self._end_time - self._start_time
             return
         else:
             print('高级数独，未全解，启动递归。。。')
-
             # 判断合法
             if self.is_valid() and self.get_list_of('can').count('') == 0:
                 # 合法，开始/继续下一个格子
@@ -213,25 +208,21 @@ class Sudoku:
                         if len(self.l[row][col]['can']) == 2:
                             # 保存状态
                             self.saved_list.append(copy.deepcopy(self.l))
-                            self.saved_num_condition = [row, col, self.l[row][col]['can'][1]]
+                            self.saved_number.append([row, col, self.l[row][col]['can'][1]])
                             # 填入数字
                             self.fill_number(self.l[row][col], self.l[row][col]['can'][0])
                             exit_flag = True
                             break
                     if exit_flag:
                         break
-            # 不合法，返回上一次状态，填入另一个数字
             else:
+                # 不合法，返回上一次状态，填入另一个数字
                 self.l = copy.deepcopy(self.saved_list.pop())
-                row = self.saved_num_condition[0]
-                col = self.saved_num_condition[1]
-                num = self.saved_num_condition[2]
-                self.fill_number(self.l[row][col], num)
-
+                _ = self.saved_number.pop()
+                self.fill_number(self.l[_[0]][_[1]], _[2])
+                self.show('can', desc='递归测试数字失败，填入另一个数字')
             # 循环方法
             self.method_main()
-
-            logging.info('👂！')
 
     def is_valid(self):
         for row in range(9):
